@@ -1,12 +1,22 @@
 const express = require('express');
-
 const server = express();
 
 server.use(express.json());
 
 const projects = [];
 
+
+//log - conta quantas requisições foram feitas
 let numberRequest = 0;
+
+server.use((req, res, next) => {
+  numberRequest++;
+
+  console.info(`Requisições: ${numberRequest}`);
+
+  next();
+
+})
 
 
 //verifica se o projeto atende todos os requisitos
@@ -31,6 +41,7 @@ function checkInsertProjects(req, res, next){
 
 }
 
+
 function checkProjectExist(req, res, next){
 
   const { id } = req.params;
@@ -44,37 +55,28 @@ function checkProjectExist(req, res, next){
 
 }
 
-//log - conta quantas requisições foram feitas
-server.use((req, res, next) => {
-  numberRequest++;
-
-  console.info(`Requisições: ${numberRequest}`);
-
-  next();
-
-})
 
 // lista todos os projetos
 server.get('/projects', (req, res) => {
   return res.json(projects);
 });
 
+
 //lista um projeto pelo id
 server.get('/projects/:id', (req, res) => {
 
   const { id } = req.params;
-
   const array = projects.filter( item =>  item.id == id )
   
   return res.json(array);
 
 });
 
+
 //cria um projeto
 server.post('/projects', checkInsertProjects, (req, res) => {
 
   const { title, id } = req.body;
-
   const project = {
     id,
     title, 
@@ -89,6 +91,7 @@ server.post('/projects', checkInsertProjects, (req, res) => {
 
 // altera o titulo do projeto
 server.put('/projects/:id', checkProjectExist, (req, res) => {
+
    const { id } = req.params;
    const { title } = req.body;
 
@@ -97,7 +100,6 @@ server.put('/projects/:id', checkProjectExist, (req, res) => {
    project.title = title;
 
    return res.json(project);
-
    
 });
 
@@ -116,11 +118,11 @@ server.post('/projects/:id/tasks', checkProjectExist,  (req, res) => {
 
 });
 
+
 // deleta o projeto pelo ID
 server.delete('/projects/:id', checkProjectExist,  (req, res) => {
 
   const { id } = req.params;
-
   const index = projects.findIndex(item => item.id == id);
 
   projects.splice(index,1);
